@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>เข้าสู่ระบบ | ระบบจัดผังที่นั่งนักเรียนอัจฉริยะ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script src="config.js"></script>
+  <style>
+    body { font-family: 'Kanit', sans-serif; }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-indigo-50 via-slate-100 to-violet-100 flex items-center justify-center p-4">
+
+  <div class="max-w-md w-full bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden">
+    <!-- Header Banner -->
+    <div class="bg-gradient-to-r from-indigo-600 to-violet-600 p-6 text-center text-white">
+      <div class="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-xs flex items-center justify-center mx-auto mb-3 shadow-inner">
+        <i class="fa-solid fa-chair text-2xl"></i>
+      </div>
+      <h1 class="text-xl font-bold">ระบบจัดผังที่นั่งนักเรียนอัจฉริยะ</h1>
+      <p class="text-xs text-indigo-100 mt-1">Smart Seating Chart Cloud • ใช้งานออนไลน์ได้ทุกที่</p>
+    </div>
+
+    <!-- Mode Switcher Tabs -->
+    <div class="grid grid-cols-2 border-b border-slate-200 bg-slate-50/70">
+      <button id="tab-login" onclick="switchMode('login')" class="py-3 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600 bg-white transition">
+        <i class="fa-solid fa-right-to-bracket mr-1.5"></i> เข้าสู่ระบบ
+      </button>
+      <button id="tab-register" onclick="switchMode('register')" class="py-3 text-sm font-medium text-slate-500 hover:text-slate-700 transition">
+        <i class="fa-solid fa-user-plus mr-1.5"></i> สมัครสมาชิกใหม่
+      </button>
+    </div>
+
+    <div class="p-6">
+      <!-- Alert Box -->
+      <div id="alert-box" class="hidden mb-4 p-3 rounded-xl text-xs font-medium flex items-center gap-2"></div>
+
+      <!-- FORM: LOGIN -->
+      <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">ชื่อผู้ใช้งาน (Username)</label>
+          <div class="relative">
+            <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input type="text" id="login-username" required placeholder="กรอกชื่อผู้ใช้งานของคุณ"
+              class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-sm outline-none" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">รหัสผ่าน (Password)</label>
+          <div class="relative">
+            <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input type="password" id="login-password" required placeholder="กรอกรหัสผ่าน"
+              class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-sm outline-none" />
+          </div>
+        </div>
+
+        <button type="submit" id="btn-login"
+          class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold text-sm shadow-md shadow-indigo-200 transition active:scale-[0.99]">
+          เข้าสู่ระบบ
+        </button>
+      </form>
+
+      <!-- FORM: REGISTER -->
+      <form id="form-register" onsubmit="handleRegister(event)" class="space-y-3.5 hidden">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">ชื่อ-นามสกุล (ครูผู้สอน)</label>
+          <input type="text" id="reg-fullname" required placeholder="เช่น นายนวชล ประตา"
+            class="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-sm outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">โรงเรียน / สถานศึกษา</label>
+          <input type="text" id="reg-school" required placeholder="เช่น โรงเรียนมอสวนขิงพิทยาสรรพ์"
+            class="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-sm outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">ตั้งชื่อผู้ใช้งาน (Username ภาษาอังกฤษ/ตัวเลข)</label>
+          <input type="text" id="reg-username" required pattern="[a-zA-Z0-9_]{4,20}" placeholder="อย่างน้อย 4 ตัวอักษร (เช่น teacher_k)"
+            class="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-sm outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">ตั้งรหัสผ่าน (Password)</label>
+          <input type="password" id="reg-password" required minlength="4" placeholder="อย่างน้อย 4 ตัวอักษร"
+            class="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-sm outline-none" />
+        </div>
+
+        <button type="submit" id="btn-register"
+          class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-200 transition active:scale-[0.99]">
+          สมัครสมาชิกและเริ่มใช้งาน
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // ถ้าล็อกอินค้างไว้อยู่แล้ว ให้เด้งไปหน้า index.html ทันที
+    if (localStorage.getItem(APP_CONFIG.SESSION_KEY)) {
+      window.location.href = 'index.html';
+    }
+
+    function switchMode(mode) {
+      const alertBox = document.getElementById('alert-box');
+      alertBox.classList.add('hidden');
+
+      if (mode === 'login') {
+        document.getElementById('form-login').classList.remove('hidden');
+        document.getElementById('form-register').classList.add('hidden');
+        document.getElementById('tab-login').className = 'py-3 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600 bg-white transition';
+        document.getElementById('tab-register').className = 'py-3 text-sm font-medium text-slate-500 hover:text-slate-700 transition';
+      } else {
+        document.getElementById('form-login').classList.add('hidden');
+        document.getElementById('form-register').classList.remove('hidden');
+        document.getElementById('tab-register').className = 'py-3 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 bg-white transition';
+        document.getElementById('tab-login').className = 'py-3 text-sm font-medium text-slate-500 hover:text-slate-700 transition';
+      }
+    }
+
+    function showAlert(msg, isError = true) {
+      const box = document.getElementById('alert-box');
+      box.className = `mb-4 p-3 rounded-xl text-xs font-medium flex items-center gap-2 ${
+        isError ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+      }`;
+      box.innerHTML = `<i class="fa-solid ${isError ? 'fa-circle-exclamation' : 'fa-circle-check'}"></i> <span>${msg}</span>`;
+      box.classList.remove('hidden');
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-login');
+      const username = document.getElementById('login-username').value.trim();
+      const password = document.getElementById('login-password').value;
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> กำลังตรวจสอบข้อมูล...';
+
+      try {
+        const res = await fetch(APP_CONFIG.API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'login', username, password })
+        });
+        const data = await res.json();
+
+        if (data.status === 'success') {
+          localStorage.setItem(APP_CONFIG.SESSION_KEY, JSON.stringify(data.user));
+          // ถ้ามีข้อมูลผังที่นั่งบน Cloud ให้นำมาทับใน LocalStorage ของเครื่องนี้
+          if (data.savedState) {
+            localStorage.setItem('SMART_SEATING_CHART_STATE_V2', data.savedState);
+          }
+          window.location.href = 'index.html';
+        } else {
+          showAlert(data.message || 'เข้าสู่ระบบไม่สำเร็จ');
+        }
+      } catch (err) {
+        showAlert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบอินเทอร์เน็ตหรือ API_URL');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'เข้าสู่ระบบ';
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-register');
+      const payload = {
+        action: 'register',
+        fullname: document.getElementById('reg-fullname').value.trim(),
+        school: document.getElementById('reg-school').value.trim(),
+        username: document.getElementById('reg-username').value.trim(),
+        password: document.getElementById('reg-password').value
+      };
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> กำลังสร้างบัญชี...';
+
+      try {
+        const res = await fetch(APP_CONFIG.API_URL, {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (data.status === 'success') {
+          showAlert('สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบด้วยบัญชีที่สร้างใหม่', false);
+          document.getElementById('login-username').value = payload.username;
+          setTimeout(() => switchMode('login'), 1200);
+        } else {
+          showAlert(data.message || 'สมัครสมาชิกไม่สำเร็จ');
+        }
+      } catch (err) {
+        showAlert('เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'สมัครสมาชิกและเริ่มใช้งาน';
+      }
+    }
+  </script>
+</body>
+</html>

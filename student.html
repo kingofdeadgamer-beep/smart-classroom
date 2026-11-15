@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ระบบสำหรับนักเรียน | Smart Classroom Student Portal</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Config -->
+  <script src="config.js"></script>
+  <!-- Google Fonts: Kanit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- HTML5-QRCode (Real Camera QR Scanner + Image QR Decoder) -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Kanit', sans-serif;
+      background-color: #f1f5f9;
+      color: #0f172a;
+    }
+    @keyframes pulse-ring {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.55); }
+      50% { box-shadow: 0 0 0 10px rgba(244, 63, 94, 0); }
+    }
+    .help-active-ring {
+      animation: pulse-ring 1.6s infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- ================= VIEW 1: STUDENT LOGIN & REGISTER SCREEN ================= -->
+  <div id="student-auth-view" class="min-h-screen bg-gradient-to-br from-sky-50 via-indigo-50 to-violet-100 flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden">
+      <!-- Top Banner -->
+      <div class="bg-gradient-to-r from-sky-600 via-indigo-600 to-violet-600 p-6 text-center text-white">
+        <div class="w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-xs flex items-center justify-center mx-auto mb-3 shadow-inner text-3xl">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <h1 class="text-xl font-extrabold">ระบบห้องเรียนสำหรับนักเรียน</h1>
+        <p class="text-xs text-sky-100 mt-1">สแกน QR เข้าห้องเรียน • เช็คชื่อ • ส่งงาน • ขอความช่วยเหลือ</p>
+      </div>
+
+      <!-- Mode Switch Tabs -->
+      <div class="grid grid-cols-2 border-b border-slate-200 bg-slate-50">
+        <button id="st-tab-login" onclick="switchAuthTab('login')" class="py-3 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600 bg-white transition">
+          <i class="fa-solid fa-right-to-bracket mr-1"></i> เข้าสู่ระบบนักเรียน
+        </button>
+        <button id="st-tab-register" onclick="switchAuthTab('register')" class="py-3 text-sm font-medium text-slate-500 hover:text-slate-700 transition">
+          <i class="fa-solid fa-user-plus mr-1"></i> สมัครสมาชิกใหม่
+        </button>
+      </div>
+
+      <div class="p-6">
+        <div id="st-auth-alert" class="hidden mb-4 p-3 rounded-xl text-xs font-semibold flex items-center gap-2"></div>
+
+        <!-- LOGIN FORM -->
+        <form id="st-form-login" onsubmit="handleStudentLogin(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">รหัสนักเรียน / ชื่อผู้ใช้งาน (Username)</label>
+            <div class="relative">
+              <i class="fa-solid fa-id-card absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+              <input type="text" id="st-login-user" required placeholder="กรอกรหัสนักเรียน หรือ Username"
+                class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-sm outline-none" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">รหัสผ่าน (Password)</label>
+            <div class="relative">
+              <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+              <input type="password" id="st-login-pass" required placeholder="กรอกรหัสผ่าน"
+                class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-sm outline-none" />
+            </div>
+          </div>
+
+          <button type="submit" id="st-btn-login"
+            class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-700 hover:to-sky-700 text-white font-bold text-sm shadow-md shadow-indigo-200 transition active:scale-[0.99]">
+            เข้าสู่ระบบนักเรียน
+          </button>
+
+          <div class="pt-2 border-t border-slate-100 text-center">
+            <a href="login.html" class="text-xs text-slate-500 hover:text-indigo-600 font-medium">
+              <i class="fa-solid fa-chalkboard-user mr-1"></i> สำหรับคุณครูผู้สอน (ไปหน้าเข้าสู่ระบบครู)
+            </a>
+          </div>
+        </form>
+
+        <!-- REGISTER FORM -->
+        <form id="st-form-register" onsubmit="handleStudentRegister(event)" class="space-y-3 hidden">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">รหัสนักเรียน (Student ID)</label>
+              <input type="text" id="st-reg-student-id" required placeholder="เช่น 66123"
+                class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-indigo-500 text-sm font-bold outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">เลขที่</label>
+              <input type="number" id="st-reg-number" min="1" max="80" required placeholder="เช่น 12"
+                class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-indigo-500 text-sm font-bold text-center outline-none" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <div class="col-span-2">
+              <label class="block text-xs font-bold text-slate-700 mb-1">ชื่อ-นามสกุลจริง</label>
+              <input type="text" id="st-reg-fullname" required placeholder="เช่น ด.ช. กิตติพงศ์ ทองดี"
+                class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-indigo-500 text-sm outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">ชื่อเล่น</label>
+              <input type="text" id="st-reg-nickname" required placeholder="เช่น กิต"
+                class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-indigo-500 text-sm outline-none" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">ระดับชั้น / ห้องเรียน</label>
+            <input type="text" id="st-reg-classroom" required placeholder="เช่น ม.2/1"
+              class="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:border-indigo-500 text-sm outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">ตั้งชื่อผู้ใช้งานสำหรับเข้าสู่ระบบ (Username)</label>
+            <input type="text" id="st-reg-user" required pattern="[a-zA-Z0-9_]{3,20}" placeholder="ภาษาอังกฤษหรือตัวเลข 3-20 ตัว (ใช้รหัสนักเรียนก็ได้)"
+              class="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:border-indigo-500 text-sm outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">ตั้งรหัสผ่าน (Password)</label>
+            <input type="password" id="st-reg-pass" required minlength="4" placeholder="อย่างน้อย 4 ตัวอักษร"
+              class="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:border-indigo-500 text-sm outline-none" />
+          </div>
+
+          <button type="submit" id="st-btn-register"
+            class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-200 transition active:scale-[0.99]">
+            สมัครสมาชิกนักเรียน
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= VIEW 2: STUDENT MAIN DASHBOARD (AFTER LOGIN) ================= -->
+  <div id="student-dashboard-view" class="hidden min-h-screen flex-col">
+    <!-- Top Student Navbar -->
+    <header class="bg-gradient-to-r from-indigo-600 via-violet-600 to-sky-600 text-white sticky top-0 z-30 shadow-md">
+      <div class="max-w-xl mx-auto px-4 h-16 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-10 h-10 rounded-2xl bg-white/15 flex items-center justify-center text-lg font-extrabold shrink-0">
+            #<span id="nav-st-number">1</span>
+          </div>
+          <div class="min-w-0">
+            <div id="nav-st-name" class="text-sm font-extrabold truncate">ชื่อนักเรียน</div>
+            <div id="nav-st-room" class="text-[11px] text-sky-100 truncate">ยังไม่ได้เชื่อมต่อห้องเรียน</div>
+          </div>
+        </div>
+
+        <button onclick="logoutStudent()" class="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-xs font-bold flex items-center gap-1 shrink-0 transition">
+          <i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Student Workspace -->
+    <main class="max-w-xl w-full mx-auto p-4 space-y-4 flex-1 pb-12">
+
+      <!-- 1. LIVE QR CODE SCANNER CARD -->
+      <section class="bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-slate-200 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-9 h-9 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center text-base">
+              <i class="fa-solid fa-qrcode"></i>
+            </div>
+            <div>
+              <h2 class="text-sm sm:text-base font-extrabold text-slate-900">สแกน QR Code จากหน้าห้องเรียน</h2>
+              <p class="text-[11px] text-slate-500">สแกนเพื่อเข้าห้องเรียนของครู หรือสแกนลิงก์ทำใบงาน</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Camera Scanner Container -->
+        <div id="qr-reader-wrapper" class="hidden overflow-hidden rounded-2xl border-2 border-sky-400 bg-slate-900 relative">
+          <div id="qr-reader" class="w-full"></div>
+          <button type="button" onclick="stopQrScanner()" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold">
+            <i class="fa-solid fa-stop mr-1"></i> ปิดกล้องสแกน
+          </button>
+        </div>
+
+        <!-- Scanner Action Buttons -->
+        <div class="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onclick="startQrScanner()"
+            class="py-3 px-3 rounded-2xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white text-xs sm:text-sm font-extrabold shadow-md shadow-sky-200 flex items-center justify-center gap-2 transition active:scale-[0.98]"
+          >
+            <i class="fa-solid fa-camera text-base"></i> เปิดกล้องสแกน QR
+          </button>
+
+          <label class="py-3 px-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 cursor-pointer transition text-center">
+            <i class="fa-solid fa-image text-indigo-600 text-base"></i> เลือกรูป QR ในเครื่อง
+            <input type="file" accept="image/*" class="hidden" onchange="scanQrFromImageFile(event)" />
+          </label>
+        </div>
+
+        <!-- Or Paste Room Link / Code Manually -->
+        <div class="pt-2 border-t border-slate-100">
+          <form onsubmit="handleManualJoinLink(event)" class="flex gap-1.5">
+            <input
+              type="text"
+              id="manual-room-link"
+              placeholder="หรือวางลิงก์เข้าห้องเรียนจากคุณครูที่นี่..."
+              class="flex-1 px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-xs outline-none focus:border-indigo-500"
+            />
+            <button type="submit" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold shrink-0">
+              เชื่อมต่อ
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- 2. CONNECTED CLASSROOM STATUS & SEAT INFO -->
+      <section id="connected-class-card" class="bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-indigo-200 space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-[10px] font-extrabold">
+              <i class="fa-solid fa-link mr-1"></i> ห้องเรียนที่เชื่อมต่ออยู่
+            </span>
+            <h3 id="dash-room-title" class="text-base sm:text-lg font-extrabold text-slate-900 mt-1">
+              กำลังโหลดข้อมูลห้องเรียน...
+            </h3>
+          </div>
+          <button onclick="refreshClassroomConnection()" class="p-2.5 rounded-xl bg-slate-100 hover:bg-indigo-100 text-indigo-700 text-xs font-bold" title="อัปเดตข้อมูลล่าสุดจากห้องเรียนครู">
+            <i class="fa-solid fa-rotate"></i>
+          </button>
+        </div>
+
+        <!-- Match Student Identity inside Teacher's Roster -->
+        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200/80 space-y-2">
+          <label class="block text-[11px] font-bold text-slate-600">ยืนยันตัวตนในรายชื่อห้องเรียนนี้:</label>
+          <select
+            id="dash-roster-match-select"
+            onchange="linkStudentToRosterId(this.value)"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm font-bold text-slate-800 outline-none focus:border-indigo-500"
+          >
+            <option value="">-- เลือกชื่อของคุณในผังที่นั่งครู --</option>
+          </select>
+
+          <div id="dash-seat-banner" class="hidden p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+            <span class="text-xs font-semibold text-emerald-800"><i class="fa-solid fa-chair mr-1"></i> ที่นั่งของคุณ:</span>
+            <span id="dash-seat-coord" class="text-sm font-extrabold text-emerald-900">แถวที่ 1 คอลัมน์ที่ 2</span>
+          </div>
+        </div>
+
+        <!-- Quick Attendance Check-in Button -->
+        <button
+          type="button"
+          id="dash-btn-checkin"
+          onclick="studentCheckInNow()"
+          class="w-full py-3.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shadow-md shadow-emerald-200 flex items-center justify-between transition active:scale-[0.99]"
+        >
+          <div class="flex items-center gap-2.5">
+            <i class="fa-solid fa-user-check text-lg"></i>
+            <span id="dash-checkin-label">กดเช็คชื่อเข้าเรียนวันนี้</span>
+          </div>
+          <span id="dash-checkin-badge" class="px-2.5 py-0.5 rounded-full bg-white/20 text-[11px]">รอเช็คชื่อ</span>
+        </button>
+      </section>
+
+      <!-- 3. LIVE HELP REQUEST LINKED TO TEACHER'S DESK CHART -->
+      <section id="help-request-card" class="bg-white rounded-3xl p-4 sm:p-5 shadow-sm border-2 border-rose-200 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-xl">
+              <i class="fa-solid fa-hand-sparkles"></i>
+            </div>
+            <div>
+              <h3 class="text-sm sm:text-base font-extrabold text-slate-900">ขอความช่วยเหลือจากคุณครู</h3>
+              <p class="text-[11px] text-slate-500">โต๊ะของคุณบนหน้าจอครูจะกะพริบแจ้งเตือนทันที</p>
+            </div>
+          </div>
+          <span id="dash-help-status-pill" class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold">ปกติ</span>
+        </div>
+
+        <input
+          type="text"
+          id="dash-help-note"
+          placeholder="พิมพ์ข้อความสั้นๆ ถึงครู (เช่น สงสัยข้อที่ 2 ครับ / ตรวจงานให้หน่อยค่ะ)"
+          class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-xs outline-none focus:border-rose-400"
+        />
+
+        <button
+          type="button"
+          id="dash-btn-help"
+          onclick="toggleLiveHelpToTeacher()"
+          class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white font-extrabold text-sm shadow-md shadow-rose-200 transition active:scale-[0.99]"
+        >
+          🙋 กดยกมือขอความช่วยเหลือ (ส่งสัญญาณไปหน้าจอครู)
+        </button>
+      </section>
+
+      <!-- 4. ASSIGNED TASKS & AUTO SUBMISSION -->
+      <section class="bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-amber-200 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-base">
+              <i class="fa-solid fa-file-pen"></i>
+            </div>
+            <div>
+              <h3 class="text-sm sm:text-base font-extrabold text-slate-900">งานที่ได้รับมอบหมายในห้องเรียน</h3>
+              <p class="text-[11px] text-slate-500">กดทำใบงานและแจ้งส่งงานเพื่ออัปเดตสถานะอัตโนมัติ</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="dash-tasks-list" class="space-y-2.5">
+          <!-- Populated dynamically -->
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Hidden div for file-based QR scanning -->
+  <div id="qr-file-temp" class="hidden"></div>
+
+  <!-- Toast Container -->
+  <div id="st-toast-container" class="fixed bottom-5 right-5 left-5 sm:left-auto z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <script>
+    const STUDENT_SESSION_KEY = 'SMART_SEATING_STUDENT_SESSION_V1';
+    const LOCAL_STUDENTS_DB_KEY = 'SMART_SEATING_LOCAL_STUDENT_ACCOUNTS_V1';
+    const MULTI_CLASS_KEY = 'SMART_SEATING_MULTI_CLASSES_V1';
+
+    let studentUser = null;
+    let activeClassId = 'class_default_1';
+    let teacherUsername = '';
+    let matchedRosterStudentId = null;
+    let classroomData = null;
+    let html5QrCodeInstance = null;
+
+    window.onload = function () {
+      // Check if opened via QR Code link (?portal=1&classId=xxx&teacher=yyy)
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('classId')) {
+        activeClassId = params.get('classId');
+        localStorage.setItem('LAST_SCANNED_CLASS_ID', activeClassId);
+      } else if (localStorage.getItem('LAST_SCANNED_CLASS_ID')) {
+        activeClassId = localStorage.getItem('LAST_SCANNED_CLASS_ID');
+      }
+
+      if (params.get('teacher')) {
+        teacherUsername = params.get('teacher');
+        localStorage.setItem('LAST_SCANNED_TEACHER', teacherUsername);
+      } else if (localStorage.getItem('LAST_SCANNED_TEACHER')) {
+        teacherUsername = localStorage.getItem('LAST_SCANNED_TEACHER');
+      }
+
+      // Check existing student login session
+      const rawSession = localStorage.getItem(STUDENT_SESSION_KEY);
+      if (rawSession) {
+        studentUser = JSON.parse(rawSession);
+        showDashboardView();
+      }
+    };
+
+    /*************************************************************************
+     * 1. AUTHENTICATION (STUDENT LOGIN & REGISTER)
+     *************************************************************************/
+    function switchAuthTab(tab) {
+      document.getElementById('st-auth-alert').classList.add('hidden');
+      if (tab === 'login') {
+        document.getElementById('st-form-login').classList.remove('hidden');
+        document.getElementById('st-form-register').classList.add('hidden');
+        document.getElementById('st-tab-login').className = 'py-3 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600 bg-white transition';
+        document.getElementById('st-tab-register').className = 'py-3 text-sm font-medium text-slate-500 hover:text-slate-700 transition';
+      } else {
+        document.getElementById('st-form-login').classList.add('hidden');
+        document.getElementById('st-form-register').classList.remove('hidden');
+        document.getElementById('st-tab-register').className = 'py-3 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 bg-white transition';
+        document.getElementById('st-tab-login').className = 'py-3 text-sm font-medium text-slate-500 hover:text-slate-700 transition';
+      }
+    }
+
+    function showAuthAlert(msg, isError = true) {
+      const box = document.getElementById('st-auth-alert');
+      box.className = `mb-4 p-3 rounded-xl text-xs font-semibold flex items-center gap-2 ${
+        isError ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+      }`;
+      box.innerHTML = `<i class="fa-solid ${isError ? 'fa-circle-exclamation' : 'fa-circle-check'}"></i> <span>${msg}</span>`;
+      box.classList.remove('hidden');
+    }
+
+    async function handleStudentRegister(e) {
+      e.preventDefault();
+      const btn = document.getElementById('st-btn-register');
+      const newAcc = {
+        role: 'student',
+        studentId: document.getElementById('st-reg-student-id').value.trim(),
+        number: parseInt(document.getElementById('st-reg-number').value, 10),
+        nickname: document.getElementById('st-reg-nickname').value.trim(),
+        fullname: document.getElementById('st-reg-fullname').value.trim(),
+        classroom: document.getElementById('st-reg-classroom').value.trim(),
+        username: document.getElementById('st-reg-user').value.trim().toLowerCase(),
+        password: document.getElementById('st-reg-pass').value
+      };
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> กำลังสมัครสมาชิก...';
+
+      // Save locally first so offline/same-device works immediately
+      const localAccounts = JSON.parse(localStorage.getItem(LOCAL_STUDENTS_DB_KEY) || '{}');
+      if (localAccounts[newAcc.username]) {
+        showAuthAlert('ชื่อผู้ใช้งานนี้ถูกสมัครไปแล้ว กรุณาใช้ชื่ออื่น');
+        btn.disabled = false;
+        btn.innerHTML = 'สมัครสมาชิกนักเรียน';
+        return;
+      }
+      localAccounts[newAcc.username] = newAcc;
+      localStorage.setItem(LOCAL_STUDENTS_DB_KEY, JSON.stringify(localAccounts));
+
+      // Also send to Google Apps Script Cloud if configured
+      if (typeof APP_CONFIG !== 'undefined' && APP_CONFIG.API_URL && !APP_CONFIG.API_URL.includes('YOUR_SCRIPT_ID')) {
+        try {
+          await fetch(APP_CONFIG.API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+              action: 'registerStudent',
+              ...newAcc
+            })
+          });
+        } catch (err) {
+          // Continue with local registration fallback
+        }
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = 'สมัครสมาชิกนักเรียน';
+      showAuthAlert('สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบด้วยบัญชีของคุณ', false);
+      document.getElementById('st-login-user').value = newAcc.username;
+      setTimeout(() => switchAuthTab('login'), 1000);
+    }
+
+    async function handleStudentLogin(e) {
+      e.preventDefault();
+      const btn = document.getElementById('st-btn-login');
+      const username = document.getElementById('st-login-user').value.trim().toLowerCase();
+      const password = document.getElementById('st-login-pass').value;
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> กำลังเข้าสู่ระบบ...';
+
+      // 1. Check local student accounts
+      const localAccounts = JSON.parse(localStorage.getItem(LOCAL_STUDENTS_DB_KEY) || '{}');
+      if (localAccounts[username] && localAccounts[username].password === password) {
+        studentUser = localAccounts[username];
+        localStorage.setItem(STUDENT_SESSION_KEY, JSON.stringify(studentUser));
+        btn.disabled = false;
+        btn.innerHTML = 'เข้าสู่ระบบนักเรียน';
+        showDashboardView();
+        return;
+      }
+
+      // 2. Check Google Apps Script Cloud
+      if (typeof APP_CONFIG !== 'undefined' && APP_CONFIG.API_URL && !APP_CONFIG.API_URL.includes('YOUR_SCRIPT_ID')) {
+        try {
+          const res = await fetch(APP_CONFIG.API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'loginStudent', username, password })
+          });
+          const data = await res.json();
+          if (data.status === 'success' && data.user) {
+            studentUser = data.user;
+            localStorage.setItem(STUDENT_SESSION_KEY, JSON.stringify(studentUser));
+            btn.disabled = false;
+            btn.innerHTML = 'เข้าสู่ระบบนักเรียน';
+            showDashboardView();
+            return;
+          }
+        } catch (err) {
+          // Fall through to error message
+        }
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = 'เข้าสู่ระบบนักเรียน';
+      showAuthAlert('ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง (หากยังไม่มีบัญชี กรุณากดแท็บสมัครสมาชิกใหม่)');
+    }
+
+    function logoutStudent() {
+      stopQrScanner();
+      localStorage.removeItem(STUDENT_SESSION_KEY);
+      studentUser = null;
+      document.getElementById('student-dashboard-view').classList.add('hidden');
+      document.getElementById('student-dashboard-view').classList.remove('flex');
+      document.getElementById('student-auth-view').classList.remove('hidden');
+    }
+
+    /*************************************************************************
+     * 2. DASHBOARD & TEACHER CLASSROOM LINKING
+     *************************************************************************/
+    function showDashboardView() {
+      document.getElementById('student-auth-view').classList.add('hidden');
+      const dash = document.getElementById('student-dashboard-view');
+      dash.classList.remove('hidden');
+      dash.classList.add('flex');
+
+      document.getElementById('nav-st-number').textContent = studentUser.number || '-';
+      document.getElementById('nav-st-name').textContent = `${studentUser.fullname} (${studentUser.nickname || ''})`;
+      document.getElementById('nav-st-room').textContent = `รหัส ${studentUser.studentId || '-'} • ห้อง ${studentUser.classroom || '-'}`;
+
+      loadTeacherClassroomData();
+    }
+
+    async function loadTeacherClassroomData() {
+      // 1. Try reading from shared LocalStorage (when opened on same browser/device or preview)
+      const multiRaw = localStorage.getItem(MULTI_CLASS_KEY);
+      if (multiRaw) {
+        try {
+          const multiObj = JSON.parse(multiRaw);
+          if (multiObj && multiObj.classes) {
+            const targetClass = multiObj.classes[activeClassId] || Object.values(multiObj.classes)[0];
+            if (targetClass) {
+              classroomData = targetClass;
+              renderConnectedClassroomUI();
+              return;
+            }
+          }
+        } catch (e) {}
+      }
+
+      // 2. Try fetching teacher's classroom data from Google Apps Script Cloud (Cross-Device Online Sync!)
+      if (teacherUsername && typeof APP_CONFIG !== 'undefined' && APP_CONFIG.API_URL && !APP_CONFIG.API_URL.includes('YOUR_SCRIPT_ID')) {
+        try {
+          const res = await fetch(APP_CONFIG.API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+              action: 'getPublicClassroom',
+              teacher: teacherUsername,
+              classId: activeClassId
+            })
+          });
+          const data = await res.json();
+          if (data.status === 'success' && data.classroom) {
+            classroomData = data.classroom;
+            renderConnectedClassroomUI();
+            return;
+          }
+        } catch (e) {}
+      }
+
+      document.getElementById('dash-room-title').textContent = 'ยังไม่ได้สแกน QR เข้าห้องเรียนของคุณครู';
+    }
+
+    function refreshClassroomConnection() {
+      loadTeacherClassroomData();
+      showToast('อัปเดตข้อมูลล่าสุดจากห้องเรียนแล้ว 🔄', 'indigo');
+    }
+
+    function renderConnectedClassroomUI() {
+      if (!classroomData) return;
+
+      document.getElementById('dash-room-title').textContent = classroomData.classroomTitle || 'ห้องเรียนออนไลน์';
+      document.getElementById('nav-st-room').textContent = classroomData.classroomTitle || `ห้อง ${studentUser.classroom}`;
+
+      const roster = classroomData.students || [];
+      const selectEl = document.getElementById('dash-roster-match-select');
+
+      // Auto-match by student number or fullname if not manually picked yet
+      if (!matchedRosterStudentId) {
+        const savedMatch = localStorage.getItem(`MATCHED_ROSTER_${activeClassId}_${studentUser.username}`);
+        if (savedMatch && roster.some(s => s.id === savedMatch)) {
+          matchedRosterStudentId = savedMatch;
+        } else {
+          const autoMatch = roster.find(s => s.number === studentUser.number || s.name.includes(studentUser.fullname));
+          if (autoMatch) matchedRosterStudentId = autoMatch.id;
+        }
+      }
+
+      selectEl.innerHTML = `<option value="">-- แตะเพื่อเลือกชื่อของคุณ (${roster.length} คน) --</option>` +
+        roster.map(st =>
+          `<option value="${st.id}" ${st.id === matchedRosterStudentId ? 'selected' : ''}>เลขที่ ${st.number} • ${st.name} ${st.nickname ? `(${st.nickname})` : ''}</option>`
+        ).join('');
+
+      updateStudentSeatAndActionStatus();
+    }
+
+    function linkStudentToRosterId(rosterId) {
+      matchedRosterStudentId = rosterId;
+      if (rosterId) {
+        localStorage.setItem(`MATCHED_ROSTER_${activeClassId}_${studentUser.username}`, rosterId);
+      }
+      updateStudentSeatAndActionStatus();
+    }
+
+    function updateStudentSeatAndActionStatus() {
+      const seatBanner = document.getElementById('dash-seat-banner');
+      if (!classroomData || !matchedRosterStudentId) {
+        seatBanner.classList.add('hidden');
+        renderStudentTasksList();
+        return;
+      }
+
+      // 1. Find seat coordinate on teacher's desk grid
+      let foundCoord = 'ยังไม่ได้จัดโต๊ะบนผัง';
+      const desks = classroomData.desks || {};
+      for (const [key, d] of Object.entries(desks)) {
+        if (d && !d.disabled && d.studentId === matchedRosterStudentId) {
+          const [r, c] = key.split('-').map(Number);
+          foundCoord = `แถวที่ ${r + 1} • คอลัมน์ที่ ${c + 1}`;
+          break;
+        }
+      }
+      seatBanner.classList.remove('hidden');
+      document.getElementById('dash-seat-coord').textContent = foundCoord;
+
+      // 2. Attendance status
+      const today = new Date().toISOString().split('T')[0];
+      const attStatus = (classroomData.attendance && classroomData.attendance[today] && classroomData.attendance[today][matchedRosterStudentId]) || '';
+      const checkinBadge = document.getElementById('dash-checkin-badge');
+      if (attStatus === 'present') {
+        checkinBadge.textContent = '✓ เช็คชื่อแล้ว';
+        checkinBadge.className = 'px-2.5 py-0.5 rounded-full bg-white text-emerald-700 text-[11px] font-extrabold';
+      } else {
+        checkinBadge.textContent = 'แตะเพื่อเช็คชื่อ';
+        checkinBadge.className = 'px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[11px] font-bold';
+      }
+
+      // 3. Help Request status
+      const helpObj = classroomData.helpRequests && classroomData.helpRequests[matchedRosterStudentId];
+      const isHelping = Boolean(helpObj && helpObj.active);
+      const helpCard = document.getElementById('help-request-card');
+      const helpPill = document.getElementById('dash-help-status-pill');
+      const helpBtn = document.getElementById('dash-btn-help');
+
+      if (isHelping) {
+        helpCard.classList.add('help-active-ring', 'border-rose-500');
+        helpPill.textContent = 'กำลังรอคุณครู...';
+        helpPill.className = 'px-2.5 py-1 rounded-full bg-rose-600 text-white text-[10px] font-extrabold animate-pulse';
+        helpBtn.innerHTML = '⏳ ส่งสัญญาณขอความช่วยเหลือแล้ว (แตะเพื่อยกเลิก)';
+        helpBtn.className = 'w-full py-3.5 rounded-2xl bg-slate-800 text-white font-extrabold text-sm shadow-md transition';
+      } else {
+        helpCard.classList.remove('help-active-ring', 'border-rose-500');
+        helpPill.textContent = 'ปกติ';
+        helpPill.className = 'px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold';
+        helpBtn.innerHTML = '🙋 กดยกมือขอความช่วยเหลือ (ส่งสัญญาณไปหน้าจอครู)';
+        helpBtn.className = 'w-full py-3.5 rounded-2xl bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white font-extrabold text-sm shadow-md shadow-rose-200 transition';
+      }
+
+      // 4. Tasks list
+      renderStudentTasksList();
+    }
+
+    function renderStudentTasksList() {
+      const listEl = document.getElementById('dash-tasks-list');
+      const tasks = (classroomData && classroomData.tasks) || [];
+
+      if (tasks.length === 0) {
+        listEl.innerHTML = '<div class="text-center py-6 text-xs text-slate-400">ยังไม่มีรายการงานที่มอบหมายในห้องนี้</div>';
+        return;
+      }
+
+      listEl.innerHTML = tasks.map(t => {
+        const subStatus = (matchedRosterStudentId && t.submissions && t.submissions[matchedRosterStudentId]) || 'pending';
+        const isDone = subStatus === 'submitted';
+
+        return `
+          <div class="p-3.5 rounded-2xl border ${isDone ? 'border-emerald-300 bg-emerald-50/40' : 'border-slate-200 bg-slate-50/60'} space-y-2.5">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <div class="text-xs sm:text-sm font-extrabold text-slate-900">${t.title}</div>
+                <div class="text-[11px] text-slate-500">กำหนดส่ง: ${t.dueDate || '-'}</div>
+              </div>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold shrink-0 ${
+                isDone ? 'bg-emerald-600 text-white' : 'bg-amber-100 text-amber-800 border border-amber-300'
+              }">
+                ${isDone ? '✓ ส่งงานแล้ว' : 'ยังไม่ส่ง'}
+              </span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <a
+                href="${t.url}"
+                target="_blank"
+                onclick="autoMarkTaskWhenOpened('${t.id}')"
+                class="py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold text-center flex items-center justify-center gap-1.5 shadow-2xs"
+              >
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดทำใบงาน
+              </a>
+              <button
+                type="button"
+                onclick="submitTaskToTeacher('${t.id}')"
+                class="py-2 px-3 rounded-xl ${
+                  isDone ? 'bg-emerald-600 text-white' : 'bg-amber-500 hover:bg-amber-600 text-slate-950'
+                } text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-2xs transition"
+              >
+                <i class="fa-solid fa-check-circle"></i> ${isDone ? 'ส่งเรียบร้อยแล้ว' : 'แจ้งส่งงานแล้ว'}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    /*************************************************************************
+     * 3. STUDENT ACTIONS SYNCED DIRECTLY TO TEACHER'S SYSTEM
+     *************************************************************************/
+    async function pushStudentActionToTeacher(actionType, payloadObj) {
+      if (!matchedRosterStudentId) {
+        showToast('กรุณาเลือกชื่อของคุณในรายชื่อห้องเรียนด้านบนก่อนครับ', 'amber');
+        return false;
+      }
+
+      // 1. Update shared LocalStorage immediately (instant update on same device / Live Server)
+      const multiRaw = localStorage.getItem(MULTI_CLASS_KEY);
+      if (multiRaw) {
+        try {
+          const multiObj = JSON.parse(multiRaw);
+          if (multiObj && multiObj.classes && multiObj.classes[activeClassId]) {
+            const cls = multiObj.classes[activeClassId];
+            if (actionType === 'checkin') {
+              const today = new Date().toISOString().split('T')[0];
+              if (!cls.attendance) cls.attendance = {};
+              if (!cls.attendance[today]) cls.attendance[today] = {};
+              cls.attendance[today][matchedRosterStudentId] = 'present';
+            } else if (actionType === 'help') {
+              if (!cls.helpRequests) cls.helpRequests = {};
+              if (payloadObj.active) {
+                cls.helpRequests[matchedRosterStudentId] = {
+                  active: true,
+                  note: payloadObj.note || 'ต้องการความช่วยเหลือ',
+                  time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
+                };
+              } else {
+                delete cls.helpRequests[matchedRosterStudentId];
+              }
+            } else if (actionType === 'submitTask') {
+              const task = (cls.tasks || []).find(t => t.id === payloadObj.taskId);
+              if (task) {
+                if (!task.submissions) task.submissions = {};
+                task.submissions[matchedRosterStudentId] = 'submitted';
+              }
+            }
+            localStorage.setItem(MULTI_CLASS_KEY, JSON.stringify(multiObj));
+            classroomData = cls;
+          }
+        } catch (e) {}
+      }
+
+      // 2. Also send to Google Apps Script Cloud so Teacher's PC receives it across devices!
+      if (teacherUsername && typeof APP_CONFIG !== 'undefined' && APP_CONFIG.API_URL && !APP_CONFIG.API_URL.includes('YOUR_SCRIPT_ID')) {
+        try {
+          await fetch(APP_CONFIG.API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+              action: 'studentLiveEvent',
+              teacher: teacherUsername,
+              classId: activeClassId,
+              studentId: matchedRosterStudentId,
+              eventType: actionType,
+              payload: payloadObj
+            })
+          });
+        } catch (e) {}
+      }
+
+      updateStudentSeatAndActionStatus();
+      return true;
+    }
+
+    async function studentCheckInNow() {
+      const ok = await pushStudentActionToTeacher('checkin', {});
+      if (ok) showToast('เช็คชื่อเข้าเรียนเรียบร้อยแล้ว! ข้อมูลส่งไปยังคุณครูแล้ว ✅', 'emerald');
+    }
+
+    async function toggleLiveHelpToTeacher() {
+      if (!matchedRosterStudentId) {
+        showToast('กรุณาเลือกชื่อของคุณในรายชื่อห้องเรียนด้านบนก่อนครับ', 'amber');
+        return;
+      }
+      const currentlyHelping = Boolean(
+        classroomData && classroomData.helpRequests && classroomData.helpRequests[matchedRosterStudentId] && classroomData.helpRequests[matchedRosterStudentId].active
+      );
+      const note = document.getElementById('dash-help-note').value.trim();
+
+      const ok = await pushStudentActionToTeacher('help', {
+        active: !currentlyHelping,
+        note
+      });
+
+      if (ok) {
+        if (!currentlyHelping) {
+          showToast('🙋 ส่งสัญญาณขอความช่วยเหลือไปยังโต๊ะของคุณบนหน้าจอครูแล้ว!', 'amber');
+        } else {
+          showToast('ยกเลิกคำขอความช่วยเหลือเรียบร้อยแล้ว', 'slate');
+        }
+      }
+    }
+
+    async function submitTaskToTeacher(taskId) {
+      const ok = await pushStudentActionToTeacher('submitTask', { taskId });
+      if (ok) showToast('อัปเดตสถานะ "ส่งงานแล้ว" ไปยังระบบของครูเรียบร้อย! 🎉', 'emerald');
+    }
+
+    function autoMarkTaskWhenOpened(taskId) {
+      // Automatically record submission status when student opens the task link
+      submitTaskToTeacher(taskId);
+    }
+
+    /*************************************************************************
+     * 4. CAMERA & IMAGE QR CODE SCANNER (Html5Qrcode)
+     *************************************************************************/
+    function startQrScanner() {
+      const wrapper = document.getElementById('qr-reader-wrapper');
+      wrapper.classList.remove('hidden');
+
+      if (!html5QrCodeInstance) {
+        html5QrCodeInstance = new Html5Qrcode('qr-reader');
+      }
+
+      html5QrCodeInstance.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 220, height: 220 } },
+        (decodedText) => {
+          stopQrScanner();
+          processScannedQrText(decodedText);
+        },
+        () => {}
+      ).catch(() => {
+        wrapper.classList.add('hidden');
+        showToast('ไม่สามารถเปิดกล้องได้ กรุณาอนุญาตสิทธิ์กล้อง หรือใช้ปุ่ม "เลือกรูป QR ในเครื่อง"', 'amber');
+      });
+    }
+
+    function stopQrScanner() {
+      const wrapper = document.getElementById('qr-reader-wrapper');
+      wrapper.classList.add('hidden');
+      if (html5QrCodeInstance && html5QrCodeInstance.isScanning) {
+        html5QrCodeInstance.stop().catch(() => {});
+      }
+    }
+
+    function scanQrFromImageFile(event) {
+      const file = event.target.files && event.target.files[0];
+      event.target.value = '';
+      if (!file) return;
+
+      const fileScanner = new Html5Qrcode('qr-file-temp');
+      fileScanner.scanFile(file, true)
+        .then(decodedText => processScannedQrText(decodedText))
+        .catch(() => showToast('ไม่พบ QR Code ในรูปภาพนี้ กรุณาลองใหม่อีกครั้ง', 'amber'));
+    }
+
+    function handleManualJoinLink(e) {
+      e.preventDefault();
+      const val = document.getElementById('manual-room-link').value.trim();
+      if (!val) return;
+      document.getElementById('manual-room-link').value = '';
+      processScannedQrText(val);
+    }
+
+    function processScannedQrText(text) {
+      try {
+        const url = new URL(text);
+        const classId = url.searchParams.get('classId');
+        const teacher = url.searchParams.get('teacher');
+
+        // Case 1: Scanned Teacher's Classroom Join QR Code
+        if (classId) {
+          activeClassId = classId;
+          localStorage.setItem('LAST_SCANNED_CLASS_ID', classId);
+          if (teacher) {
+            teacherUsername = teacher;
+            localStorage.setItem('LAST_SCANNED_TEACHER', teacher);
+          }
+          matchedRosterStudentId = null;
+          loadTeacherClassroomData();
+          showToast('เชื่อมต่อเข้าห้องเรียนสำเร็จ! กรุณาตรวจสอบชื่อของคุณด้านล่าง 🎉', 'emerald');
+          return;
+        }
+
+        // Case 2: Scanned Task / Assignment QR Code -> Open link & mark task submitted
+        showToast('สแกน QR งานสำเร็จ! กำลังเปิดลิงก์ใบงาน...', 'indigo');
+        const activeTask = classroomData && classroomData.tasks && classroomData.tasks.find(t => t.url === text);
+        if (activeTask) {
+          submitTaskToTeacher(activeTask.id);
+        }
+        window.open(text, '_blank');
+      } catch (e) {
+        showToast(`อ่านค่า QR Code ได้: ${text}`, 'indigo');
+      }
+    }
+
+    function showToast(message, color = 'indigo') {
+      const container = document.getElementById('st-toast-container');
+      const toast = document.createElement('div');
+      const colors = {
+        indigo: 'bg-indigo-950 text-white border-indigo-700',
+        emerald: 'bg-emerald-900 text-white border-emerald-700',
+        amber: 'bg-amber-900 text-white border-amber-700',
+        slate: 'bg-slate-800 text-white border-slate-700'
+      };
+      toast.className = `px-4 py-3 rounded-2xl border shadow-lg text-xs font-bold flex items-center gap-2 ${colors[color] || colors.indigo}`;
+      toast.innerHTML = `<i class="fa-solid fa-circle-info"></i> <span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3200);
+    }
+  </script>
+</body>
+</html>
